@@ -37,6 +37,21 @@ public class UserController {
 	@Autowired
 	UserConverter converter;
 	
+	/* Get User by name to register */
+	@GetMapping(value = "/register/{email}", produces = "application/json")
+	public ResponseEntity<?> findByIdUser(@PathVariable String email){
+		UserDTO user = service.findUserRegister(email);
+		try {
+			if(user != null) {
+				return new ResponseEntity<UserDTO>(user, HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("Usuario com o Código '" + email + "' não encontrado!!!",  HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<String>("Ocorreu um erro no controller da requisição: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	/* List All Users and Seach by Name */
 	@GetMapping(produces = "application/json")
 	public ResponseEntity<?> getAllUser(

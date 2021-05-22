@@ -26,5 +26,10 @@ public interface UserRepository extends JpaRepository<User, Long>{
 	/* Query by Id */
 	@Query("select u from User u where u.id = ?1")
 	User findByIdUser(Long id);
+	
+	/* Query All Users */
+	@Query(value = "SELECT * FROM tb_user WHERE unaccent(email) ilike unaccent('%' || ?1 || '%')", 
+			nativeQuery = true)
+	User findUserRegister(String email);
 
 }

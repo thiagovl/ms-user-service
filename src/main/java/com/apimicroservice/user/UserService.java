@@ -31,6 +31,16 @@ public class UserService {
 	
 	@Autowired
     private PasswordEncoder passwordEncoder;
+	
+	/* Get User register */
+	public UserDTO findUserRegister(String email) {
+		User user =  repository.findUserRegister(email);
+		if(user == null) {
+			return null;	
+		}
+		UserDTO dto = converter.entityToDto(user);
+		return dto;	
+	}
 
 	/* Get All Users */
 	@Transactional(readOnly = true)
