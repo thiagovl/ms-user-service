@@ -76,6 +76,7 @@ public class RoleService{
             return converter.entityToDto(entity);
 		} catch (EntityNotFoundException e){
             throw new ResourceNotFoundException(id);
+
         }
 	}
 	/* Method Update Data */

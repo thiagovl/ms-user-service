@@ -13,8 +13,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +27,16 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apimicroservice.exceptions.ResourceNotFoundException;
+import com.apimicroservice.security.AuthRequest;
+import com.apimicroservice.security.JwtUtil;
+
 @RestController
-@RequestMapping(value = "/api/users")
+@RequestMapping("/api/users")
 public class UserController {
 	
 	@Autowired
@@ -36,24 +44,29 @@ public class UserController {
 	
 	@Autowired
 	UserConverter converter;
+
+	@Autowired
+    private AuthenticationManager authenticationManager;
 	
-	/* Get User by name to register */
-	@GetMapping(value = "/register/{email}", produces = "application/json")
-	public ResponseEntity<?> findByIdUser(@PathVariable String email){
-		UserDTO user = service.findUserRegister(email);
-		try {
-			if(user != null) {
-				return new ResponseEntity<UserDTO>(user, HttpStatus.OK);
-			}else {
-				return new ResponseEntity<String>("Usuario com o Código '" + email + "' não encontrado!!!",  HttpStatus.OK);
-			}
-		} catch (Exception e) {
-			return new ResponseEntity<String>("Ocorreu um erro no controller da requisição: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+	@Autowired
+	private JwtUtil jwt;
+	
+	/* Register */
+	@PostMapping("/authenticate")
+    public String generateToken(@RequestBody AuthRequest authRequest) throws Exception {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword()) 
+            );
+        } catch (Exception ex) {
+            throw new ResourceNotFoundException("Ocorreu um erro na requisição. Usuário/Senha invalidos!");
+        }
+        
+        return "Bearer " + jwt.generateToken(authRequest.getEmail());
+    }
 	
 	/* List All Users and Seach by Name */
-	@GetMapping(produces = "application/json")
+	@GetMapping
 	public ResponseEntity<?> getAllUser(
 			@RequestParam(required = false) String name,
 	        @RequestParam(defaultValue = "0") int page,
@@ -84,14 +97,29 @@ public class UserController {
 				 if(!users.isEmpty()) {
 					 return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 				 }
-				 return new ResponseEntity<String>("Não foi encontrado nenhum usuário!!!", HttpStatus.OK);
+				 return new ResponseEntity<String>("Não foi encontrado nenhum usuário!!!", HttpStatus.NO_CONTENT);
 			} catch (Exception e) {
 				return new ResponseEntity<String>("Ocorreu um erro no controller da requisição: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 			}		
 	}
 	
+	/* Get User by email */
+	@PostMapping("/email")
+	public ResponseEntity<?> findByIdUser(@RequestBody UserEmail email){
+		UserDTO user = service.findByEmailUser(email.getEmail());
+		try {
+			if(user != null) {
+				return new ResponseEntity<UserDTO>(user, HttpStatus.OK);
+			}else {
+				return new ResponseEntity<String>("Usuario com o Código '" + email.getEmail() + "' não encontrado!!!",  HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			return new ResponseEntity<String>("Ocorreu um erro no controller da requisição: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
 	/* Get User by Id */
-	@GetMapping(value = "/{id}", produces = "application/json")
+	@GetMapping("/{id}")
 	public ResponseEntity<?> findByIdUser(@PathVariable Long id){
 		UserDTO user = service.findByIdUser(id);
 		try {
@@ -106,7 +134,7 @@ public class UserController {
 	}
 	
 	/* Create User */
-	@PostMapping(produces = "application/json")
+	@PostMapping
 	public ResponseEntity<?> create(@RequestBody @Valid UserDTO user){
 		UserDTO entity = service.create(user);
 		try {
@@ -121,7 +149,7 @@ public class UserController {
 	}
 	
 	/* Update User */
-	@PutMapping(value = "/{id}", produces = "application/json")
+	@PutMapping("/{id}")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody @Valid UserDTO user){
 		try {
 			user = service.update(id, user);
@@ -136,7 +164,7 @@ public class UserController {
 	}
 	
 	/* Delete User */	
-	@DeleteMapping(value = "/{id}", produces = "application/json")
+	@DeleteMapping("/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		String msg = service.delete(id);
 		try {

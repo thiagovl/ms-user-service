@@ -31,16 +31,6 @@ public class UserService {
 	
 	@Autowired
     private PasswordEncoder passwordEncoder;
-	
-	/* Get User register */
-	public UserDTO findUserRegister(String email) {
-		User user =  repository.findUserRegister(email);
-		if(user == null) {
-			return null;	
-		}
-		UserDTO dto = converter.entityToDto(user);
-		return dto;	
-	}
 
 	/* Get All Users */
 	@Transactional(readOnly = true)
@@ -58,6 +48,18 @@ public class UserService {
 	    return new PageImpl<>(dtos, pageable, list.getTotalElements());
 
 	}
+	
+	/* Get User by Email */
+	@Transactional(readOnly = true)
+	public UserDTO findByEmailUser(String email) {
+		User user =  repository.findByEmail(email);
+		if(user == null) {
+			return null;	
+		}
+		UserDTO dto = converter.entityToDto(user);
+		return dto;	
+					
+	}
 
 	/* Get User by Id */
 	@Transactional(readOnly = true)
@@ -74,7 +76,7 @@ public class UserService {
 	/* Create User */
 	@Transactional
 	public UserDTO create(UserDTO dto) {
-		User user = new User(null, dto.getName(), dto.getEmail(), passwordEncoder.encode(dto.getPassword()), dto.getUserStatus(),dto.getRole());
+		User user = new User(null, dto.getName(), dto.getEmail(), dto.getPassword(), dto.getUserStatus(),dto.getRole());
 		user = repository.save(user);
 		return converter.entityToDto(user);
 	}
@@ -101,7 +103,7 @@ public class UserService {
         entity.setName(obj.getName());
         entity.setEmail(obj.getEmail());
         entity.setUserStatus(obj.getUserStatus());
-        entity.setPassword(passwordEncoder.encode(obj.getPassword()));
+        entity.setPassword(obj.getPassword());
         entity.setRole(obj.getRole());
 	}
 

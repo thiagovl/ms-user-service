@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "/api/roles")
+@RequestMapping("/api/roles")
 public class RoleController {
 	
 	@Autowired
@@ -38,7 +38,7 @@ public class RoleController {
 	RoleConverter converter;
 	
 	/* List All Roles and Seach by Name */
-	@GetMapping(produces = "application/json")
+	@GetMapping
 	public ResponseEntity<?> getAllRole(
 			@RequestParam(required = false) String name,
 	        @RequestParam(defaultValue = "0") int page,
@@ -76,7 +76,7 @@ public class RoleController {
 	}
 	
 	/* Get Role by Id */
-	@GetMapping(value = "/{id}", produces = "application/json")
+	@GetMapping("/{id}")
 	public ResponseEntity<?> findByIdRole(@PathVariable Long id){
 		RoleDTO role = service.findByIdRole(id);
 		try {
@@ -91,7 +91,7 @@ public class RoleController {
 	}
 	
 	/* Create Role */
-	@PostMapping(produces = "application/json")
+	@PostMapping
 	public ResponseEntity<?> create(@RequestBody @Valid RoleDTO role){
 		RoleDTO entity = service.create(role);
 		try {
@@ -106,7 +106,7 @@ public class RoleController {
 	}
 	
 	/* Update Role */
-	@PutMapping(value = "/{id}", produces = "application/json")
+	@PutMapping("/{id}")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestBody @Valid RoleDTO role){	
 		try {
 			role = service.update(id, role);
@@ -121,7 +121,7 @@ public class RoleController {
 	}
 	
 	/* Delete Role */
-	@DeleteMapping(value = "/{id}", produces = "application/json")
+	@DeleteMapping("/{id}")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		String msg = service.delete(id);
 		try {
