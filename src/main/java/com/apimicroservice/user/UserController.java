@@ -37,6 +37,7 @@ import com.apimicroservice.security.JwtUtil;
 
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin("*")
 public class UserController {
 	
 	@Autowired
